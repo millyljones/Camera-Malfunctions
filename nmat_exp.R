@@ -203,7 +203,7 @@ balance_perm <- nimbleFunction(run = function(A = double(2),
 
 nmat.exp.pade <- nimbleFunction(run = function(A = double(2),
                                                n.states = integer(0),
-                                               balancing = integer(0, default = 0)){
+                                               balancing = integer(0, default = 1)){
   # code follows almost exactly expm.Higham08
   # in places modified as our matrix A is fixed square 3x3 and has predetermined
   # non-zero entries
@@ -251,12 +251,12 @@ nmat.exp.pade <- nimbleFunction(run = function(A = double(2),
     S[,] <- R2[1:n.states, n.states + (1:n.states)]
     
     C <- matrix(type = 'double', ncol = n.states, nrow = n.states)
-    C[,] <- AS[,] #- diag(rep(nu, n.states))
+    C[,] <- AS[,] 
     
   } else {
     
     C <- matrix(type = 'double', ncol = n.states, nrow = n.states)
-    C[,] <- A[,] #- diag(rep(nu, n.states))
+    C[,] <- A[,]
     
   }
   
@@ -276,8 +276,6 @@ nmat.exp.pade <- nimbleFunction(run = function(A = double(2),
     for (m in 1:5){
       if (C.norm <= theta[m]){
         X[,] = r(m.opt[m], C[,], n.states)
-        X[,] = X[,] #exp(nu)*X[,]
-        return(X[,])
       }
     }
     
@@ -306,18 +304,25 @@ nmat.exp.pade <- nimbleFunction(run = function(A = double(2),
     if (s > 0){
       X[,] <- pow2.mat(X[,], s, n.states)
     }
+  }
     
-    ## undo scaling
+    ## undo scaling and permutation
     if (balancing){
       
+      # undo scaling step
       d <- numeric(length = n.states)
-      d <- diag(S)
-      X[,] <- X[,] * d * rep(1/d, each = n.states)
-    
+      d[1]<-S[1,1]; d[2]<-S[2,2]; d[3]<-S[3,3]
+      D <- matrix(type='double', ncol=n.states, nrow=n.states)
+      D[,] <-  matrix(rep(d, n.states) * rep(d^(-1), each=n.states), nrow=n.states)
+      X[,] <- X[,] * D[,]
+
+      # undo permutation step
       X[,] <- t(P[,]) %*% X[,] %*% P[,]
     }
     
-    return(X[,])
-  }
+    
+  return(X[,])
+  
 }
 )
+
