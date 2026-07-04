@@ -2,9 +2,6 @@
 # this file contains the functions to compute the probabilities
 # that the system is in a given state at any point in time
 
-# https://rdrr.io/cran/HiddenMarkov/man/mmpp-2nd-level-functions.html?utm_source=chatgpt.com
-# check that these guys are doing approx the same thing we are doing with the MMPP
-
 prob.det <- nimbleFunction(run = function(C = double(2),
                                           x = double(1),
                                           n.states = integer(0),
